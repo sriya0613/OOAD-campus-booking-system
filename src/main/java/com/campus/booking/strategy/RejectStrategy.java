@@ -7,5 +7,6 @@ public class RejectStrategy implements BookingStrategy {
     @Override
     public void process(Booking booking) {
         booking.setStatus("REJECTED");
+        booking.getResource().setStatus("AVAILABLE");
     }
 }
