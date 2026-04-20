@@ -53,7 +53,7 @@
 
 <h1>Campus Booking System</h1>
 
-<!-- ✅ USER -->
+<!-- USER -->
 <h3>Add User</h3>
 <input type="text" id="name" placeholder="Enter Name">
 
@@ -64,32 +64,26 @@
 
 <button onclick="addUser()">Add User</button>
 
-<!-- ✅ RESOURCE -->
-<h3>Add Resource</h3>
-<input type="text" id="resourceName" placeholder="Enter Resource">
-
-<select id="type">
-    <option value="ROOM">ROOM</option>
-    <option value="LAB">LAB</option>
-    <option value="EQUIPMENT">EQUIPMENT</option>
-</select>
-
-<button onclick="addResource()">Add Resource</button>
-
-<!-- ✅ ACTIONS -->
+<!-- ACTIONS -->
 <h3>Actions</h3>
 <button onclick="getUsers()">Show Users</button>
 <button onclick="getResources()">Show Resources</button>
 
-<!-- ✅ BOOKING -->
+<!-- BOOKING (REALISTIC FLOW ⭐) -->
 <h3>Booking</h3>
+
+<select id="resourceSelect">
+    <option value="">Select Resource</option>
+</select>
+
 <button onclick="createBooking()">Book Resource</button>
 
-<!-- ✅ OUTPUT -->
+<!-- OUTPUT -->
 <h3>Output</h3>
 <pre id="output"></pre>
 
 <script>
+
     function addUser() {
         fetch('/users', {
             method: 'POST',
@@ -103,23 +97,6 @@
             .then(data => {
                 document.getElementById('output').innerText =
                     "User Added:\n" + JSON.stringify(data, null, 2);
-            });
-    }
-
-    function addResource() {
-        fetch('/resources', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: document.getElementById('resourceName').value,
-                type: document.getElementById('type').value,
-                status: "AVAILABLE"
-            })
-        })
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('output').innerText =
-                    "Resource Added:\n" + JSON.stringify(data, null, 2);
             });
     }
 
@@ -141,13 +118,36 @@
             });
     }
 
+    function loadResources() {
+        fetch('/resources')
+            .then(res => res.json())
+            .then(data => {
+                const dropdown = document.getElementById('resourceSelect');
+                dropdown.innerHTML = '<option value="">Select Resource</option>';
+
+                data.forEach(resource => {
+                    const option = document.createElement('option');
+                    option.value = resource.id;
+                    option.text = resource.name + " (" + resource.type + ")";
+                    dropdown.appendChild(option);
+                });
+            });
+    }
+
     function createBooking() {
+        const resourceId = document.getElementById('resourceSelect').value;
+
+        if (!resourceId) {
+            alert("Please select a resource");
+            return;
+        }
+
         fetch('/bookings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                user: { id: 1 },
-                resource: { id: 1 }
+                user: { id: 1 },  // can improve later
+                resource: { id: resourceId }
             })
         })
             .then(res => res.json())
@@ -156,6 +156,9 @@
                     "Booking Created:\n" + JSON.stringify(data, null, 2);
             });
     }
+
+    window.onload = loadResources;
+
 </script>
 
 </body>
