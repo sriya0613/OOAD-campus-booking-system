@@ -7,5 +7,6 @@ public class ApproveStrategy implements BookingStrategy {
     @Override
     public void process(Booking booking) {
         booking.setStatus("APPROVED");
+        booking.getResource().setStatus("BOOKED");
     }
 }
