@@ -16,21 +16,25 @@ public class ResourceController {
     @Autowired
     private ResourceRepository resourceRepository;
 
-    // ✅ CREATE RESOURCE (using Factory Pattern)
+    //CREATE RESOURCE
     @PostMapping
     public Resource addResource(@RequestBody Resource resource) {
-
         Resource newResource = ResourceFactory.createResource(
                 resource.getName(),
                 resource.getType()
         );
-
         return resourceRepository.save(newResource);
     }
 
-    // ✅ GET ALL RESOURCES
+    // GET ALL RESOURCES
     @GetMapping
     public List<Resource> getAll() {
         return resourceRepository.findAll();
+    }
+
+    // DELETE RESOURCE
+    @DeleteMapping("/{id}")
+    public void deleteResource(@PathVariable Long id) {
+        resourceRepository.deleteById(id);
     }
 }
