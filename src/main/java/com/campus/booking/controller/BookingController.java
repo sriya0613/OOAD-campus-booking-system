@@ -6,6 +6,7 @@ import com.campus.booking.repository.UserRepository;
 import com.campus.booking.repository.ResourceRepository;
 import com.campus.booking.strategy.ApproveStrategy;
 import com.campus.booking.strategy.RejectStrategy;
+import com.campus.booking.strategy.CancelStrategy;
 import com.campus.booking.strategy.BookingStrategy;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,15 +27,13 @@ public class BookingController {
     @Autowired
     private ResourceRepository resourceRepository;
 
-    // ✅ CREATE BOOKING (FIXED)
+    // CREATE BOOKING
     @PostMapping
     public Booking createBooking(@RequestBody Booking booking) {
 
-        // 🔥 Fetch full user from DB
         Long userId = booking.getUser().getId();
         booking.setUser(userRepository.findById(userId).orElseThrow());
 
-        // 🔥 Fetch full resource from DB
         Long resourceId = booking.getResource().getId();
         booking.setResource(resourceRepository.findById(resourceId).orElseThrow());
 
@@ -43,15 +42,25 @@ public class BookingController {
         return bookingRepository.save(booking);
     }
 
-    // ✅ GET ALL BOOKINGS
+    // GET ALL BOOKINGS
     @GetMapping
     public List<Booking> getAll() {
         return bookingRepository.findAll();
     }
 
-    // ✅ APPROVE BOOKING (Strategy Pattern)
+    // GET BOOKINGS BY USER
+    @GetMapping("/user/{userId}")
+    public List<Booking> getBookingsByUser(@PathVariable Long userId) {
+        return bookingRepository.findAll()
+                .stream()
+                .filter(b -> b.getUser().getId().equals(userId))
+                .toList();
+    }
+
+    // ✅ APPROVE BOOKING
     @PutMapping("/approve/{id}")
     public Booking approve(@PathVariable Long id) {
+
         Booking booking = bookingRepository.findById(id).orElseThrow();
 
         BookingStrategy strategy = new ApproveStrategy();
@@ -60,12 +69,25 @@ public class BookingController {
         return bookingRepository.save(booking);
     }
 
-    // ✅ REJECT BOOKING (Strategy Pattern)
+    //REJECT BOOKING
     @PutMapping("/reject/{id}")
     public Booking reject(@PathVariable Long id) {
+
         Booking booking = bookingRepository.findById(id).orElseThrow();
 
         BookingStrategy strategy = new RejectStrategy();
+        strategy.process(booking);
+
+        return bookingRepository.save(booking);
+    }
+
+    //CANCEL BOOKING
+    @PutMapping("/cancel/{id}")
+    public Booking cancel(@PathVariable Long id) {
+
+        Booking booking = bookingRepository.findById(id).orElseThrow();
+
+        BookingStrategy strategy = new CancelStrategy();
         strategy.process(booking);
 
         return bookingRepository.save(booking);
